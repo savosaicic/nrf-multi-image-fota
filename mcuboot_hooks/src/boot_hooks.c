@@ -46,18 +46,9 @@ fih_ret boot_go_hook(struct boot_rsp *rsp)
     FIH_RET(FIH_FAILURE);
   }
 
-  /* Read the image header (first ih_hdr_size bytes of the partition,
-   * which lives inside mcuboot_pad / mcuboot_pad_1). */
-  rc = flash_area_read(fap, 0, &selected_hdr, sizeof(selected_hdr));
+  rc = boot_image_load_header(fap, &selected_hdr);
   if (rc != 0) {
-    printk("boot_go_hook: header read failed: %d\n", rc);
-    flash_area_close(fap);
-    FIH_RET(FIH_FAILURE);
-  }
-
-  if (selected_hdr.ih_magic != IMAGE_MAGIC) {
-    printk("boot_go_hook: bad image magic 0x%08x at partition %u\n",
-           selected_hdr.ih_magic, partition_id);
+    printk("boot_image_load_header: failed: %d\n", rc);
     flash_area_close(fap);
     FIH_RET(FIH_FAILURE);
   }

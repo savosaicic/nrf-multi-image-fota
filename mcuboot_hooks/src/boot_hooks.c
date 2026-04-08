@@ -16,55 +16,31 @@
 #include "bootutil/image.h"
 #include "bootutil/fault_injection_hardening.h"
 
-/* PM-generated partition IDs */
-#include <pm_config.h>
-
 /* 0 = bank0, 1 = bank1 */
 #define HARDCODED_BOOT_IMAGE_INDEX 0
 
-static struct image_header selected_hdr;
-
 fih_ret boot_go_hook(struct boot_rsp *rsp)
 {
-  const struct flash_area *fap = NULL;
-  uint8_t partition_id;
-  int rc;
   FIH_DECLARE(fih_rc, FIH_FAILURE);
 
-  if (HARDCODED_BOOT_IMAGE_INDEX == 0) {
-    partition_id = PM_MCUBOOT_PRIMARY_ID;
-  } else {
-    partition_id = PM_MCUBOOT_PRIMARY_1_ID;
-  }
+  printk("boot_go_hook: selecting mcuboot image %d\n",
+         HARDCODED_BOOT_IMAGE_INDEX);
 
-  printk("boot_go_hook: selecting image %d (partition id %u)\n",
-         HARDCODED_BOOT_IMAGE_INDEX, partition_id);
+  /*
+   * Runs the full mcuboot pipeline
+   * (state init, swap if needed, header read, full image
+   * validation via bootutil_img_validate) for a single mcuboot image.
+   */
+  FIH_CALL(boot_go_for_image_id, fih_rc, rsp,
+           (uint32_t)HARDCODED_BOOT_IMAGE_INDEX);
 
-  rc = flash_area_open(partition_id, &fap);
-  if (rc != 0) {
-    printk("boot_go_hook: flash_area_open failed: %d\n", rc);
+  if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+    printk("boot_go_hook: boot_go_for_image_id failed\n");
     FIH_RET(FIH_FAILURE);
   }
-
-  rc = boot_image_load_header(fap, &selected_hdr);
-  if (rc != 0) {
-    printk("boot_image_load_header: failed: %d\n", rc);
-    flash_area_close(fap);
-    FIH_RET(FIH_FAILURE);
-  }
-
-  /* TODO: verify the image with `bootutil_img_validate()` */
-
-  rsp->br_flash_dev_id = flash_area_get_device_id(fap);
-  rsp->br_image_off    = flash_area_get_off(fap);
-  rsp->br_hdr          = &selected_hdr;
-
-  flash_area_close(fap);
 
   printk("boot_go_hook: jumping to image at off 0x%x\n",
          (unsigned int)rsp->br_image_off);
-
-  (void)fih_rc; /* suppress unused-variable warning */
 
   FIH_RET(FIH_SUCCESS);
 }

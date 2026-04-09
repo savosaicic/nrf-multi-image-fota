@@ -108,34 +108,42 @@ tfm_secure:
   region: flash_primary
   span: [mcuboot_pad, tfm]
 
-# ========================== Image 0: bank0 secondary ==========================
-mcuboot_secondary:
-  address: 0x68000
-  size: 0x40000
-  region: flash_primary
-
 # =========================== Image 1: bank1 primary ===========================
 mcuboot_pad_1:
-  address: 0xa8000
+  address: 0x68000
   size: 0x200
   region: flash_primary
 
 bank1:
-  address: 0xa8200
+  address: 0x68200
   size: 0x27e00
   region: flash_primary
 
 mcuboot_primary_1:
-  address: 0xa8000
+  address: 0x68000
   size: 0x28000
   region: flash_primary
   span: [mcuboot_pad_1, bank1]
 
+# Fill the gap between mcuboot_primary_1 and settings_storage
+EMPTY_0:
+  address: 0x90000
+  size: 0x68000
+  region: flash_primary
+
+# ========================== Image 0: bank0 secondary ==========================
+# Secondary slots live in external flash (upgrade staging only, mcuboot copies
+# them back to the internal primary before execution)
+mcuboot_secondary:
+  address: 0x0
+  size: 0x40000
+  region: external_flash
+
 # ========================== Image 1: bank1 secondary ==========================
 mcuboot_secondary_1:
-  address: 0xd0000
+  address: 0x40000
   size: 0x28000
-  region: flash_primary
+  region: external_flash
 
 # =============================== Settings / NVS ===============================
 settings_storage:

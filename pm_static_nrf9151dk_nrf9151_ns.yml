@@ -76,29 +76,29 @@ tfm:
   region: flash_primary
 
 # NOTE: 'app' is not defined here, PM places it dynamically
-# inside mcuboot_primary, filling 0x30000-0x68000
+# inside mcuboot_primary, filling 0x30000-0x70000
 
 mcuboot_primary:
   address: 0x28000
-  size: 0x40000
+  size: 0x48000
   region: flash_primary
   span: [mcuboot_pad, tfm, app]
 
 mcuboot_primary_app:
   address: 0x28200
-  size: 0x3fe00
+  size: 0x47e00
   region: flash_primary
   span: [tfm, app]
 
 app_image:
   address: 0x28200
-  size: 0x3fe00
+  size: 0x47e00
   region: flash_primary
   span: [tfm, app]
 
 tfm_nonsecure:
   address: 0x30000
-  size: 0x38000
+  size: 0x40000
   region: flash_primary
   span: [app]
 
@@ -110,54 +110,54 @@ tfm_secure:
 
 # =========================== Image 1: bank1 primary ===========================
 mcuboot_pad_1:
-  address: 0x68000
+  address: 0x70000
   size: 0x200
   region: flash_primary
 
 bank1_tfm:
-  address: 0x68200
+  address: 0x70200
   size: 0x7e00
   region: flash_primary
 
 bank1:
-  address: 0x70000
+  address: 0x78000
   size: 0x20000
   region: flash_primary
 
 mcuboot_primary_1:
-  address: 0x68000
+  address: 0x70000
   size: 0x28000
   region: flash_primary
   span: [mcuboot_pad_1, bank1_tfm, bank1]
 
 mcuboot_primary_1_app:
-  address: 0x68200
+  address: 0x70200
   size: 0x27e00
   region: flash_primary
   span: [bank1_tfm, bank1]
 
 bank1_image:
-  address: 0x68200
+  address: 0x70200
   size: 0x27e00
   region: flash_primary
   span: [bank1_tfm, bank1]
 
 bank1_tfm_nonsecure:
-  address: 0x70000
+  address: 0x78000
   size: 0x20000
   region: flash_primary
   span: [bank1]
 
 bank1_tfm_secure:
-  address: 0x68000
+  address: 0x70000
   size: 0x8000
   region: flash_primary
   span: [mcuboot_pad_1, bank1_tfm]
 
 # Fill the gap between mcuboot_primary_1 and settings_storage
 EMPTY_0:
-  address: 0x90000
-  size: 0x68000
+  address: 0x98000
+  size: 0x60000
   region: flash_primary
 
 # ========================== Image 0: bank0 secondary ==========================
@@ -165,12 +165,12 @@ EMPTY_0:
 # them back to the internal primary before execution)
 mcuboot_secondary:
   address: 0x0
-  size: 0x40000
+  size: 0x48000
   region: external_flash
 
 # ========================== Image 1: bank1 secondary ==========================
 mcuboot_secondary_1:
-  address: 0x40000
+  address: 0x48000
   size: 0x28000
   region: external_flash
 

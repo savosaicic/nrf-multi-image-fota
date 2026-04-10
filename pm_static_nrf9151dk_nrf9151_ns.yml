@@ -114,16 +114,45 @@ mcuboot_pad_1:
   size: 0x200
   region: flash_primary
 
-bank1:
+bank1_tfm:
   address: 0x68200
-  size: 0x27e00
+  size: 0x7e00
+  region: flash_primary
+
+bank1:
+  address: 0x70000
+  size: 0x20000
   region: flash_primary
 
 mcuboot_primary_1:
   address: 0x68000
   size: 0x28000
   region: flash_primary
-  span: [mcuboot_pad_1, bank1]
+  span: [mcuboot_pad_1, bank1_tfm, bank1]
+
+mcuboot_primary_1_app:
+  address: 0x68200
+  size: 0x27e00
+  region: flash_primary
+  span: [bank1_tfm, bank1]
+
+bank1_image:
+  address: 0x68200
+  size: 0x27e00
+  region: flash_primary
+  span: [bank1_tfm, bank1]
+
+bank1_tfm_nonsecure:
+  address: 0x70000
+  size: 0x20000
+  region: flash_primary
+  span: [bank1]
+
+bank1_tfm_secure:
+  address: 0x68000
+  size: 0x8000
+  region: flash_primary
+  span: [mcuboot_pad_1, bank1_tfm]
 
 # Fill the gap between mcuboot_primary_1 and settings_storage
 EMPTY_0:

@@ -16,7 +16,7 @@
 #include "bootutil/image.h"
 #include "bootutil/fault_injection_hardening.h"
 
-/* 0 = bank0, 1 = bank1 */
+/* 0 = bank1, 1 = bank0 */
 #define HARDCODED_BOOT_IMAGE_INDEX 0
 
 fih_ret boot_go_hook(struct boot_rsp *rsp)

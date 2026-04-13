@@ -4,15 +4,17 @@
 #include <zephyr/net/lwm2m.h>
 #include <zephyr/sys/reboot.h>
 #include <modem/nrf_modem_lib.h>
-#include <zephyr/drivers/gpio.h>
 #include <net/lwm2m_client_utils.h>
 
+#include "temperature.h"
+#include "ecompass.h"
 #include "firmware_update.h"
 
-LOG_MODULE_REGISTER(fota_lwm2m);
+LOG_MODULE_REGISTER(nrf91_lwm2m_client);
 
-#define ENDPOINT_NAME "test_ovas"
-#define LIFETIME_S    (60 * 5)
+#define ENDPOINT_NAME "your-endpoint-name"
+#define SERVER_ID     1
+#define LIFETIME_S    60
 
 static K_SEM_DEFINE(lte_connected, 0, 1);
 
@@ -22,10 +24,6 @@ static const char serial[]       = "SN-001";
 static const char fw_ver[]       = "1.0.0";
 
 static struct lwm2m_ctx client_ctx;
-
-#define SLEEP_TIME_MS 1000
-#define LED0_NODE DT_ALIAS(led0)
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 static void lte_handler(const struct lte_lc_evt *const evt)
 {
@@ -165,10 +163,12 @@ static int device_reboot_cb(uint16_t obj_inst_id, uint8_t *args,
   return 0;
 }
 
+/*
+ * Server Object (ID 1)
+ * Short Server ID is set by lwm2m_client_utils; we only override the rest.
+ */
 static void setup_server_object(void)
 {
-  /* Short Server ID is set by lwm2m_client_utils lib */
-
   /* Resource 1: Lifetime */
   lwm2m_set_u32(&LWM2M_OBJ(1, 0, 1), LIFETIME_S);
 
@@ -179,6 +179,16 @@ static void setup_server_object(void)
   lwm2m_set_string(&LWM2M_OBJ(1, 0, 7), "U");
 }
 
+/* Called by lwm2m_client_utils to acknowledge a pending CoAP request */
+void client_acknowledge(void)
+{
+  lwm2m_acknowledge(&client_ctx);
+}
+
+/*
+ * Device Object (ID 3)
+ * Object describing the device itself
+ */
 static void setup_device_object(void)
 {
   lwm2m_set_res_buf(&LWM2M_OBJ(3, 0, 0), (void *)manufacturer,
@@ -191,6 +201,7 @@ static void setup_device_object(void)
   lwm2m_set_res_buf(&LWM2M_OBJ(3, 0, 3), (void *)fw_ver, sizeof(fw_ver),
                     sizeof(fw_ver), LWM2M_RES_DATA_FLAG_RO);
 
+  /* Register reboot cb */
   lwm2m_register_exec_callback(&LWM2M_OBJ(3, 0, 4), device_reboot_cb);
 }
 
@@ -198,7 +209,7 @@ static int lwm2m_setup(void)
 {
   int ret;
 
-  /* Writes server URL from Kconfig and sets NoSec mode */
+  /* Writes server URL from CONFIG_LWM2M_CLIENT_UTILS_SERVER and sets NoSec */
   ret = lwm2m_init_security(&client_ctx, ENDPOINT_NAME, NULL);
   if (ret < 0) {
     LOG_ERR("Failed to init security object: %d", ret);
@@ -210,31 +221,30 @@ static int lwm2m_setup(void)
 
   ret = setup_firmware_object();
   if (ret < 0) {
-    LOG_ERR("failed to setup firmware object: %d", ret);
+    LOG_ERR("Firmware object setup failed: %d", ret);
+    return ret;
+  }
+
+  ret = setup_temperature_sensor();
+  if (ret < 0) {
+    LOG_ERR("Temperature object setup failed: %d", ret);
+    return ret;
+  }
+
+  ret = setup_ecompass();
+  if (ret < 0) {
+    LOG_ERR("eCompass object setup failed: %d", ret);
     return ret;
   }
 
   return 0;
 }
 
-void client_acknowledge(void)
-{
-	lwm2m_acknowledge(&client_ctx);
-}
-
 int main(void)
 {
   int ret;
 
-  LOG_INF("*** BANK0 ***");
-
-  if (!gpio_is_ready_dt(&led)) {
-    return 0;
-  }
-  ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-  if (ret < 0) {
-    return 0;
-  }
+  LOG_INF("*** BANK1 ***");
 
   ret = modem_configure();
   if (ret) {
@@ -254,12 +264,7 @@ int main(void)
                         observe_cb);
 
   while (1) {
-    ret = gpio_pin_toggle_dt(&led);
-    if (ret < 0) {
-      return 0;
-    }
-
-    k_msleep(SLEEP_TIME_MS);
+    k_sleep(K_FOREVER);
   }
 
   return 0;

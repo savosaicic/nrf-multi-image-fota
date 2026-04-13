@@ -1,5 +1,15 @@
 #include <zephyr/dt-bindings/sensor/stts22h.h>
 
+&gd25wb256 {
+    status = "okay";
+};
+
+/ {
+    chosen {
+        nordic,pm-ext-flash = &gd25wb256;
+    };
+};
+
 &arduino_i2c {
     status = "okay";
 

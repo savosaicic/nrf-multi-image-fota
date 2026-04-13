@@ -1,27 +1,27 @@
-# Register bank1 as an external Zephyr image built under sysbuild.
+# Register bank0 as an external Zephyr image built under sysbuild.
 ExternalZephyrProject_Add(
-  APPLICATION bank1
-  SOURCE_DIR  ${APP_DIR}/bank1
+  APPLICATION bank0
+  SOURCE_DIR  ${APP_DIR}/bank0
   BOARD       nrf9151dk/nrf9151/ns
 )
 
-# Add bank1 to the list sysbuild uses to propagate MCUboot image number
+# Add bank0 to the list sysbuild uses to propagate MCUboot image number
 # configuration and to drive signing.
-UpdateableImage_Add(APPLICATION bank1)
+UpdateableImage_Add(APPLICATION bank0)
 
-# Tell Partition Manager that bank1 is an app image. PM will assign it the
+# Tell Partition Manager that bank0 is an app image. PM will assign it the
 # mcuboot_primary_1 / mcuboot_secondary_1 slot pair from pm_static.yml.
-set_property(GLOBAL APPEND PROPERTY PM_APP_IMAGES bank1)
+set_property(GLOBAL APPEND PROPERTY PM_APP_IMAGES bank0)
 
-# Force CONFIG_BOOTLOADER_MCUBOOT=y on bank1 build to enable image signing
-# and ensure mcuboot_pad_1 header. Without this, bank1 builds an unsigned
+# Force CONFIG_BOOTLOADER_MCUBOOT=y on bank0 build to enable image signing
+# and ensure mcuboot_pad_1 header. Without this, bank0 builds an unsigned
 # binary and the magic word at mcuboot_pad_1 stays 0xff, causing
 # boot_go_hook to reject the image.
-set_config_bool(bank1 CONFIG_BOOTLOADER_MCUBOOT y)
+set_config_bool(bank0 CONFIG_BOOTLOADER_MCUBOOT y)
 
 # Propagate the signing key path. sysbuild sets this automatically for
 # DEFAULT_IMAGE only.
-set_config_string(bank1 CONFIG_MCUBOOT_SIGNATURE_KEY_FILE
+set_config_string(bank0 CONFIG_MCUBOOT_SIGNATURE_KEY_FILE
   "${ZEPHYR_MCUBOOT_MODULE_DIR}/root-ec-p256.pem")
 
 # Inject the MCUboot hook module into the mcuboot build.
@@ -29,17 +29,17 @@ set(mcuboot_EXTRA_ZEPHYR_MODULES
     "${APP_DIR}/mcuboot_hooks"
     CACHE INTERNAL "Extra Zephyr modules for mcuboot image" FORCE)
 
-# Patch bank1's pm_config.h so its TFM child build uses bank1 partition
-# addresses instead of bank0's.
+# Patch bank0's pm_config.h so its TFM child build uses bank0 partition
+# addresses instead of the main app's.
 #
 # The partition manager generates one pm_config.h per image, but all images
 # in the APP domain share the same partition defines (PM_TFM_ADDRESS, etc.).
-# Bank1's TFM must be linked for addresses inside mcuboot_primary_1, not
+# Bank0's TFM must be linked for addresses inside mcuboot_primary_1, not
 # mcuboot_primary. We fix this by appending #undef / #define overrides
 # after PM has run. cmake_language(DEFER) ensures this executes at the end
 # of the sysbuild CMakeLists.txt (after partition_manager.cmake).
-function(_patch_bank1_pm_config)
-  set(pm_cfg "${APPLICATION_BINARY_DIR}/bank1/zephyr/include/generated/pm_config.h")
+function(_patch_bank0_pm_config)
+  set(pm_cfg "${APPLICATION_BINARY_DIR}/bank0/zephyr/include/generated/pm_config.h")
   if(NOT EXISTS "${pm_cfg}")
     return()
   endif()
@@ -47,7 +47,7 @@ function(_patch_bank1_pm_config)
   file(READ "${pm_cfg}" _content)
 
   # Only patch once (idempotent guard)
-  string(FIND "${_content}" "BANK1_PM_OVERRIDE" _already_patched)
+  string(FIND "${_content}" "BANK0_PM_OVERRIDE" _already_patched)
   if(NOT _already_patched EQUAL -1)
     return()
   endif()
@@ -55,9 +55,9 @@ function(_patch_bank1_pm_config)
   # The addresses below must match pm_static_nrf9151dk_nrf9151_ns.yml
   set(_overrides [=[
 
-/* ---------- BANK1_PM_OVERRIDE ---------- */
-/* Redirect TFM partition defines to bank1's slot addresses so that the   */
-/* TFM child image built inside bank1 is linked for the correct location. */
+/* ---------- BANK0_PM_OVERRIDE ---------- */
+/* Redirect TFM partition defines to bank0's slot addresses so that the   */
+/* TFM child image built inside bank0 is linked for the correct location. */
 
 #undef PM_TFM_OFFSET
 #undef PM_TFM_ADDRESS
@@ -147,7 +147,7 @@ function(_patch_bank1_pm_config)
     "${_overrides}\n#endif /* PM_CONFIG_H__ */"
     _content "${_content}")
   file(WRITE "${pm_cfg}" "${_content}")
-  message(STATUS "Patched bank1 pm_config.h with bank1 TFM addresses")
+  message(STATUS "Patched bank0 pm_config.h with bank0 TFM addresses")
 endfunction()
 
-cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} CALL _patch_bank1_pm_config)
+cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} CALL _patch_bank0_pm_config)

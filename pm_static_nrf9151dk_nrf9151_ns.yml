@@ -64,7 +64,7 @@ s1_mcuboot_pad:
   size: 0x4000
   region: flash_primary
 
-# =========================== Image 0: bank0 primary ===========================
+# =========================== Image 0: bank1 primary ===========================
 mcuboot_pad:
   address: 0x28000
   size: 0x200
@@ -108,18 +108,18 @@ tfm_secure:
   region: flash_primary
   span: [mcuboot_pad, tfm]
 
-# =========================== Image 1: bank1 primary ===========================
+# =========================== Image 1: bank0 primary ===========================
 mcuboot_pad_1:
   address: 0x70000
   size: 0x200
   region: flash_primary
 
-bank1_tfm:
+bank0_tfm:
   address: 0x70200
   size: 0x7e00
   region: flash_primary
 
-bank1:
+bank0:
   address: 0x78000
   size: 0x3c000
   region: flash_primary
@@ -128,31 +128,31 @@ mcuboot_primary_1:
   address: 0x70000
   size: 0x44000
   region: flash_primary
-  span: [mcuboot_pad_1, bank1_tfm, bank1]
+  span: [mcuboot_pad_1, bank0_tfm, bank0]
 
 mcuboot_primary_1_app:
   address: 0x70200
   size: 0x43e00
   region: flash_primary
-  span: [bank1_tfm, bank1]
+  span: [bank0_tfm, bank0]
 
-bank1_image:
+bank0_image:
   address: 0x70200
   size: 0x43e00
   region: flash_primary
-  span: [bank1_tfm, bank1]
+  span: [bank0_tfm, bank0]
 
-bank1_tfm_nonsecure:
+bank0_tfm_nonsecure:
   address: 0x78000
   size: 0x3c000
   region: flash_primary
-  span: [bank1]
+  span: [bank0]
 
-bank1_tfm_secure:
+bank0_tfm_secure:
   address: 0x70000
   size: 0x8000
   region: flash_primary
-  span: [mcuboot_pad_1, bank1_tfm]
+  span: [mcuboot_pad_1, bank0_tfm]
 
 # Fill the gap between mcuboot_primary_1 and settings_storage
 EMPTY_0:
@@ -160,7 +160,7 @@ EMPTY_0:
   size: 0x44000
   region: flash_primary
 
-# ========================== Image 0: bank0 secondary ==========================
+# ========================== Image 0: bank1 secondary ==========================
 # Secondary slots live in external flash (upgrade staging only, mcuboot copies
 # them back to the internal primary before execution)
 mcuboot_secondary:
@@ -168,7 +168,7 @@ mcuboot_secondary:
   size: 0x48000
   region: external_flash
 
-# ========================== Image 1: bank1 secondary ==========================
+# ========================== Image 1: bank0 secondary ==========================
 mcuboot_secondary_1:
   address: 0x48000
   size: 0x44000

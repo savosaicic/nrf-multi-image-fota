@@ -38,6 +38,12 @@ set(mcuboot_EXTRA_ZEPHYR_MODULES
 # mcuboot_primary. We fix this by appending #undef / #define overrides
 # after PM has run. cmake_language(DEFER) ensures this executes at the end
 # of the sysbuild CMakeLists.txt (after partition_manager.cmake).
+#
+# NOTE: PM_MCUBOOT_SECONDARY_* is intentionally not overridden here.
+# PM correctly sets secondary[0]=0x0 (bank1 staging) and
+# secondary[1]=(0x0 + bank1 size) (bank0 staging). dfu_target_mcuboot uses
+# PM_MCUBOOT_SECONDARY_0_* aliases that must resolve to the bank1 staging
+# slot so that img_num=0 targets the correct external flash region.
 function(_patch_bank0_pm_config)
   set(pm_cfg "${APPLICATION_BINARY_DIR}/bank0/zephyr/include/generated/pm_config.h")
   if(NOT EXISTS "${pm_cfg}")
@@ -130,15 +136,6 @@ function(_patch_bank0_pm_config)
 #define PM_APP_IMAGE_ADDRESS      0x78200
 #define PM_APP_IMAGE_END_ADDRESS  0xbc000
 #define PM_APP_IMAGE_SIZE         0x43e00
-
-#undef PM_MCUBOOT_SECONDARY_OFFSET
-#undef PM_MCUBOOT_SECONDARY_ADDRESS
-#undef PM_MCUBOOT_SECONDARY_END_ADDRESS
-#undef PM_MCUBOOT_SECONDARY_SIZE
-#define PM_MCUBOOT_SECONDARY_OFFSET       0x50000
-#define PM_MCUBOOT_SECONDARY_ADDRESS      0x50000
-#define PM_MCUBOOT_SECONDARY_END_ADDRESS  0x94000
-#define PM_MCUBOOT_SECONDARY_SIZE         0x44000
 
 ]=])
 

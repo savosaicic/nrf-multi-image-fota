@@ -52,7 +52,6 @@ The main application image: LwM2M client, sensors, GNSS, and FOTA. Includes:
 - LwM2M stack
 - LwM2M client utils
 - FOTA download
-- MCUmgr (DFU in app)
 - GNSS
 - I2C sensor subsystem: STTS22H (temperature), LSM303AGR (ecompass)
 - SPI

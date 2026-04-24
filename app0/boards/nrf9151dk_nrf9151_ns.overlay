@@ -9,24 +9,3 @@
         nordic,pm-ext-flash = &gd25wb256;
     };
 };
-
-&arduino_i2c {
-    status = "okay";
-
-    lsm303agr_accel: lsm303agr_accel@19 {
-        compatible = "st,lis2dh";
-        reg = <0x19>;
-    };
-
-    lsm303agr_mag: lsm303agr_mag@1e {
-        compatible = "st,lis2mdl";
-        reg = <0x1e>;
-    };
-
-    stts22h: stts22h@3c {
-      compatible = "st,stts22h";
-      reg = <0x3c>;
-      sampling-rate = <STTS22H_1Hz>;
-      int-gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
-    };
-};

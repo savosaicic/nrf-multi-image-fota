@@ -8,8 +8,5 @@ project(app0)
 target_include_directories(app PRIVATE app0/include)
 target_sources(app PRIVATE
   app0/src/main.c
-  app0/src/gnss.c
-  app0/src/temperature.c
-  app0/src/ecompass.c
   app0/src/firmware_update.c
 )

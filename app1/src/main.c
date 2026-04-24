@@ -226,7 +226,7 @@ int main(void)
 {
   int ret;
 
-  LOG_INF("*** BANK0 ***");
+  LOG_INF("*** APP1 ***");
 
   if (!gpio_is_ready_dt(&led)) {
     return 0;

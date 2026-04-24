@@ -3,8 +3,8 @@
 This repository is an experiment and reference implementation of a multi-image firmware
 architecture on the **nRF9151**, exploring the full secure boot chain: an immutable
 first-stage bootloader (NSIB/b0), an upgradable MCUboot with dual slots (s0/s1), and
-two independently upgradable application images: a main image (bank1) and
-a recovery image (bank0).
+two independently upgradable application images: a main image (app1) and
+a recovery image (app0).
 
 The goal is to validate this architecture for production firmware:
 understanding the memory constraints, the boot flow, and the FOTA update paths for each
@@ -35,14 +35,14 @@ in the field (write-protected via fprotect).
 
 ### MCUboot — Second-stage bootloader
 
-Selects and validates either bank1 or bank0 before jumping to the
+Selects and validates either app1 or app0 before jumping to the
 chosen image. Includes:
 
 - Logging
 - Serial recovery (DFU over UART)
 - MCU Hooks for bank selection logic
 
-### bank1 — Main application
+### app1 — Main application
 
 The main application image: LwM2M client, sensors, GNSS, and FOTA. Includes:
 
@@ -57,11 +57,11 @@ The main application image: LwM2M client, sensors, GNSS, and FOTA. Includes:
 - SPI
 - Settings / NVS
 
-### bank0 — Recovery application
+### app0 — Recovery application
 
-bank0 acts as a recovery image: if bank1 is non-functional or needs to be replaced,
-bank0 can connect to the network and trigger a FOTA update to upgrade bank1. It is also
-intended to eventually support upgrading MCUboot and itself (bank0), covering the full
+app0 acts as a recovery image: if app1 is non-functional or needs to be replaced,
+app0 can connect to the network and trigger a FOTA update to upgrade app1. It is also
+intended to eventually support upgrading MCUboot and itself (app0), covering the full
 firmware chain from a recovery state.
 The image includes:
 
@@ -73,7 +73,7 @@ The image includes:
 - FOTA download
 - Settings / NVS
 
-> Both bank1 and bank0 embed their own TF-M instance, which configures the SPU
+> Both app1 and app0 embed their own TF-M instance, which configures the SPU
 > (Security Processing Unit) before launching the non-secure application.
 
 ---
@@ -90,14 +90,14 @@ consumption per image slot and the remaining margin available for future develop
 | b0 (NSIB)      | 32 KB  | 27 KB  |  5 KB  |
 | MCUboot (s0)   | 52 KB  | 48 KB  |  4 KB  |
 | MCUboot (s1)   | 52 KB  | 48 KB  |  4 KB  |
-| bank1 — TF-M   | 31 KB  | 10 KB  | 21 KB  |
-| bank1 — NS app | 288 KB | 271 KB | 17 KB  |
-| bank0 — TF-M   | 31 KB  | 10 KB  | 21 KB  |
-| bank0 — NS app | 240 KB | 233 KB |  7 KB  |
+| app1 — TF-M   | 31 KB  | 10 KB  | 21 KB  |
+| app1 — NS app | 288 KB | 271 KB | 17 KB  |
+| app0 — TF-M   | 31 KB  | 10 KB  | 21 KB  |
+| app0 — NS app | 240 KB | 233 KB |  7 KB  |
 | Settings / NVS | 32 KB  | —      | —      |
 | Unused region  | 240 KB | —      | 240 KB |
 
-The bank0 NS app has 7 KB free, bank1 NS app 17 KB, and MCUboot 4 KB. The TF-M slots
+The app0 NS app has 7 KB free, app1 NS app 17 KB, and MCUboot 4 KB. The TF-M slots
 both have 21 KB free. The 240 KB unused region is available to extend any of these
 slots as needed, alongside a dedicated 32 KB settings partition.
-The secondary slots for bank0 and bank1 upgrade images are stored on external flash.
+The secondary slots for app0 and app1 upgrade images are stored on external flash.

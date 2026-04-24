@@ -2,10 +2,10 @@
  * Custom MCUboot image selection via button press.
  *
  * At boot, a 5 second window opens:
- *   BTN1 (sw0) → bank1
- *   BTN2 (sw1) → bank0
+ *   BTN1 (sw0) → app0
+ *   BTN2 (sw1) → app1
  *
- * If no button is pressed within the window, bank1 boots automatically.
+ * If no button is pressed within the window, app0 boots automatically.
  */
 
 #include <string.h>
@@ -20,8 +20,8 @@
 #include "bootutil/image.h"
 #include "bootutil/fault_injection_hardening.h"
 
-#define IMAGE_BANK1    0
-#define IMAGE_BANK0    1
+#define IMAGE_APP0    0
+#define IMAGE_APP1    1
 #define BTN_TIMEOUT_MS 5000
 
 static const struct gpio_dt_spec btn1 = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
@@ -30,7 +30,7 @@ static const struct gpio_dt_spec btn2 = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
 fih_ret boot_go_hook(struct boot_rsp *rsp)
 {
   FIH_DECLARE(fih_rc, FIH_FAILURE);
-  int     image_index = IMAGE_BANK1;
+  int     image_index = IMAGE_APP0;
   int64_t deadline;
   int     prev_sec = -1;
 
@@ -52,14 +52,14 @@ fih_ret boot_go_hook(struct boot_rsp *rsp)
   }
 
   if (!gpio_is_ready_dt(&btn1) || !gpio_is_ready_dt(&btn2)) {
-    printk("boot_go_hook: GPIO not ready, defaulting to bank1\n");
+    printk("boot_go_hook: GPIO not ready, defaulting to app0\n");
     goto boot;
   }
 
   gpio_pin_configure_dt(&btn1, GPIO_INPUT);
   gpio_pin_configure_dt(&btn2, GPIO_INPUT);
 
-  printk("boot_go_hook: BTN1=bank1 (default)  BTN2=bank0\n");
+  printk("boot_go_hook: BTN1=app0 (default)  BTN2=app1\n");
   printk("boot_go_hook: waiting %d s for button press...\n",
          BTN_TIMEOUT_MS / 1000);
 
@@ -73,21 +73,21 @@ fih_ret boot_go_hook(struct boot_rsp *rsp)
     }
 
     if (gpio_pin_get_dt(&btn1) > 0) {
-      image_index = IMAGE_BANK1;
-      printk("boot_go_hook: BTN1 pressed -> bank1\n");
+      image_index = IMAGE_APP0;
+      printk("boot_go_hook: BTN1 pressed -> app0\n");
       goto boot;
     }
 
     if (gpio_pin_get_dt(&btn2) > 0) {
-      image_index = IMAGE_BANK0;
-      printk("boot_go_hook: BTN2 pressed -> bank0\n");
+      image_index = IMAGE_APP1;
+      printk("boot_go_hook: BTN2 pressed -> app1\n");
       goto boot;
     }
 
     k_msleep(10);
   }
 
-  printk("boot_go_hook: timeout -> bank1 (default)\n");
+  printk("boot_go_hook: timeout -> app0 (default)\n");
 
 boot:
   printk("boot_go_hook: booting image %d\n", image_index);

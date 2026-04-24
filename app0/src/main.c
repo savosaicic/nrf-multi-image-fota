@@ -259,7 +259,7 @@ int main(void)
 {
   int ret;
 
-  LOG_INF("*** BANK1 ***");
+  LOG_INF("*** APP0 ***");
 
   ret = modem_configure();
   if (ret) {

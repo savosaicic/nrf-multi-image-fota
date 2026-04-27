@@ -155,6 +155,17 @@ lwm2m_init_firmware_cb(fota_event_cb);
 lwm2m_init_image_multi(<running image index>);
 ```
 
+The running image index is hardcoded per binary (`APP_MCUBOOT_IMG_NUM`
+in each app's `firmware_update.c`). No SDK runtime mechanism exposes
+it: `CONFIG_MCUBOOT_APPLICATION_IMAGE_NUMBER` is always 0 for
+application images, and `BLINFO_RUNNING_SLOT` records the slot
+(primary/secondary) the image was loaded from, not the image pair
+index, in swap mode every image runs from primary (slot 0).
+
+A future runtime mechanism could let the custom MCUboot hook (which
+already knows `image_index`) write it to retained memory and have the
+application read it back via `retention_read()`.
+
 ## Building
 
 Set up the west workspace:

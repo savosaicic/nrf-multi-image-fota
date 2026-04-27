@@ -33,14 +33,32 @@ static int fota_event_cb(struct lwm2m_fota_event *event)
   return 0;
 }
 
+/* MCUboot image pair index of this binary */
+#define APP_MCUBOOT_IMG_NUM 1
+
 int setup_firmware_object(void)
 {
   int ret;
 
-  lwm2m_init_firmware_cb(fota_event_cb);
+  ret = lwm2m_adv_firmware_mcuboot_inst_add("app0", 0);
+  if (ret < 0) {
+    LOG_ERR("Failed to register app0 MCUboot pair: %d", ret);
+    return ret;
+  }
+  ret = lwm2m_adv_firmware_mcuboot_inst_add("app1", 1);
+  if (ret < 0) {
+    LOG_ERR("Failed to register app1 MCUboot pair: %d", ret);
+    return ret;
+  }
+
+  ret = lwm2m_init_firmware_cb(fota_event_cb);
+  if (ret < 0) {
+    LOG_ERR("Failed to init firmware callback: %d", ret);
+    return ret;
+  }
 
   /* Call once at boot to confirm MCUboot image and sync result to server */
-  ret = lwm2m_init_image();
+  ret = lwm2m_init_image_multi(APP_MCUBOOT_IMG_NUM);
   if (ret < 0) {
     LOG_ERR("Failed to setup image properties: %d", ret);
     return ret;

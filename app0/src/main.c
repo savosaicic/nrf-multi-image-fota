@@ -244,7 +244,7 @@ int main(void)
 {
   int ret;
 
-  LOG_INF("*** APP0 ***");
+  LOG_INF("*** APP0 from up app1 ***");
 
   ret = modem_configure();
   if (ret) {

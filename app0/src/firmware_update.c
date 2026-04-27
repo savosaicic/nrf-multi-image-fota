@@ -60,7 +60,7 @@ int setup_firmware_object(void)
   /* Call once at boot to confirm MCUboot image and sync result to server */
   ret = lwm2m_init_image_multi(APP_MCUBOOT_IMG_NUM);
   if (ret < 0) {
-    LOG_ERR("Failed to setup image properties: %d", ret);
+    LOG_ERR("Failed to confirm image %d: %d", APP_MCUBOOT_IMG_NUM, ret);
     return ret;
   }
 

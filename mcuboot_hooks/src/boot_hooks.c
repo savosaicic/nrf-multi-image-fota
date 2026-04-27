@@ -27,6 +27,24 @@
 static const struct gpio_dt_spec btn1 = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
 static const struct gpio_dt_spec btn2 = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
 
+#include <zephyr/drivers/flash.h>
+#include <zephyr/device.h>
+
+/* Temp: erase external flash secondaries once */
+static void erase_ext_secondaries(void)
+{
+  const struct flash_area *fa;
+
+  if (flash_area_open(FIXED_PARTITION_ID(mcuboot_secondary), &fa) == 0) {
+    flash_area_erase(fa, 0, fa->fa_size);
+    flash_area_close(fa);
+  }
+  if (flash_area_open(FIXED_PARTITION_ID(mcuboot_secondary_1), &fa) == 0) {
+    flash_area_erase(fa, 0, fa->fa_size);
+    flash_area_close(fa);
+  }
+}
+
 fih_ret boot_go_hook(struct boot_rsp *rsp)
 {
   FIH_DECLARE(fih_rc, FIH_FAILURE);

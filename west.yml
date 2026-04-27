@@ -2,12 +2,14 @@ manifest:
   remotes:
     - name: ncs
       url-base: https://github.com/nrfconnect
+    - name: savosaicic
+      url-base: https://github.com/savosaicic
 
   projects:
     - name: nrf
       repo-path: sdk-nrf
-      remote: ncs
-      revision: v3.2.4
+      remote: savosaicic
+      revision: lwm2m-fota-multi-image-support
       import: true
 
   self:

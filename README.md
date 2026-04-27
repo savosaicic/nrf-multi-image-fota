@@ -21,8 +21,8 @@ This project demonstrates:
 - TF-M embedded inside both `app0` and `app1` (both built for the `/ns` target)
 - LwM2M FOTA of `app0`, `app1`, and modem firmware through a single LwM2M
   client, selecting the MCUboot image pair per update
-- A patched `fota_download` / `lwm2m_client_utils` in the SDK to replace the
-  hardcoded `img_num=0`
+- A forked `sdk-nrf` (`savosaicic/sdk-nrf`, branch `lwm2m-fota-multi-image-support`)
+  with `fota_download` / `lwm2m_client_utils` extended to replace the hardcoded `img_num=0`
 - A sysbuild time patch of the generated `pm_config.h` so the TF-M child
   build of `app1` links for its own partition addresses
 - An MCUboot image selection hook that chooses between `app0` and `app1` on
@@ -138,13 +138,13 @@ If the PM static layout in `pm_static_nrf9151dk_nrf9151_ns.yml` changes,
 the hardcoded addresses inside `_patch_app1_pm_config()` in
 `sysbuild.cmake` must be updated to match.
 
-## SDK patch
+## SDK fork
 
-The upstream `fota_download` hardcodes `img_num=0` in every call to
+Upstream `fota_download` hardcodes `img_num=0` in every call to
 `dfu_target_init()`, and `lwm2m_client_utils` hardcodes a single
 "application" instance pointing at `PM_MCUBOOT_PRIMARY_ID`.
-The patch fixes both to enable multi-image FOTA. It is applied
-via west patch during workspace setup (see [Building](#building)).
+The fork fixes both to enable multi-image FOTA. `west.yml` points directly to this
+fork, so no manual patch step is needed.
 
 Both applications use the new API:
 
@@ -178,12 +178,6 @@ pip install west
 west init -m https://github.com/savosaicic/nrf-multi-image-fota --mr main
 west update
 pip install -r zephyr/scripts/requirements.txt
-```
-
-Apply the SDK patch:
-
-```
-west patch -sm nrf-multi-image-fota -b patches -l patches.yml apply
 ```
 
 Set the LwM2M server host in `prj.conf` (both images) before building:

@@ -29,6 +29,12 @@ set(mcuboot_EXTRA_ZEPHYR_MODULES
     "${APP_DIR}/mcuboot_hooks"
     CACHE INTERNAL "Extra Zephyr modules for mcuboot image" FORCE)
 
+# s1_image (variant of mcuboot) does not inherit
+# EXTRA_ZEPHYR_MODULES from mcuboot, so inject hooks explicitly.
+set(s1_image_EXTRA_ZEPHYR_MODULES
+    "${APP_DIR}/mcuboot_hooks"
+    CACHE INTERNAL "Extra Zephyr modules for s1_image" FORCE)
+
 # Patch app1's pm_config.h so its TFM child build uses app1 partition
 # addresses instead of the main app's.
 #

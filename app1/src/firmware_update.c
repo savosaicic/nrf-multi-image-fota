@@ -22,9 +22,10 @@ static int fota_event_cb(struct lwm2m_fota_event *event)
     return 0;
   case LWM2M_FOTA_UPDATE_MODEM_RECONNECT_REQ:
     /* TODO: Modem update requires LTE reconnection
-     * handle it here
+     * handle it here to avoid rebooting
      */
-    break;
+    LOG_INF("Modem update applied, rebooting");
+    return -1; /* Let the lib handle the reboot */
   case LWM2M_FOTA_UPDATE_ERROR:
     LOG_ERR("Update failed on instance %d, code %d", event->failure.obj_inst_id,
             event->failure.update_failure);
